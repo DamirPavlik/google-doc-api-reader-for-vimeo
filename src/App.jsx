@@ -1,8 +1,11 @@
 import "./App.css";
 import LoginButton from "./components/loginButton";
 import LogoutButton from "./components/logoutButton";
+import StatusDisplay from "./components/statusDisplay";
+import { StatusProvider } from "./context/statusProvider";
 import { gapi } from "gapi-script";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
+import StatusContext from "./context/statusProvider";
 
 const clientId = import.meta.env.VITE_CLIENT_ID;
 const apiKey = import.meta.env.VITE_API_KEY;
@@ -67,8 +70,11 @@ function App() {
         allElements[i] &&
         allElements[i].content.includes("https://vimeo.com/")
       ) {
-        let cleanTitle = allElements[i - 1].content.replace("\n", "").replace("\v", "").trim();
-        setTitle(prevState => [...prevState, cleanTitle]);
+        let cleanTitle = allElements[i - 1].content
+          .replace("\n", "")
+          .replace("\v", "")
+          .trim();
+        setTitle((prevState) => [...prevState, cleanTitle]);
       }
     }
   };
@@ -77,49 +83,63 @@ function App() {
     for (let i = 0; i < vimeoId.length; i++) {
       let obj = {
         vimeoId: vimeoId[i],
-        title: title[i]
-      }
+        title: title[i],
+      };
 
-      setTitleAndIds(prevState => [...prevState, obj]);
+      setTitleAndIds((prevState) => [...prevState, obj]);
     }
-  }
+  };
 
   const copyToClipboard = () => {
     const codeText = codeRef.current.innerText;
     navigator.clipboard.writeText(codeText).then(() => {
       alert("Code copied to clipboard!");
     });
-  }
+  };
 
   return (
-    <div id="App">
-      <div className="d-flex mb-20">
-        <LoginButton></LoginButton>
-        <LogoutButton></LogoutButton>
-      </div>
-      <input
-        type="text"
-        placeholder="Document Id"
-        className="mb-20"
-        value={documentId}
-        onChange={(e) => setDocumentId(e.target.value)}
-      />
-      <button onClick={() => fetchCourses()} className="mr-10">Fetch Video IDs</button>
-      <button onClick={() => addTitles()} className="mr-10">Fetch Titles</button>
-      <button onClick={() => createTitlesAndIdsObjects()}>Create Titles and IDs object</button>
-      <code>
-        <pre ref={codeRef}>
-        <button onClick={copyToClipboard} className="copy-to-clipboard">Copy To Clipboard</button>
-          {`
+    <StatusProvider>
+      <div id="App">
+        <StatusDisplay />
+        <div className="d-flex mb-20">
+          <LoginButton></LoginButton>
+          <LogoutButton></LogoutButton>
+        </div>
+        <input
+          type="text"
+          placeholder="Document Id"
+          className="mb-20"
+          value={documentId}
+          onChange={(e) => setDocumentId(e.target.value)}
+        />
+        <button onClick={() => fetchCourses()} className="mr-10">
+          Fetch Video IDs
+        </button>
+        <button onClick={() => addTitles()} className="mr-10">
+          Fetch Titles
+        </button>
+        <button onClick={() => createTitlesAndIdsObjects()}>
+          Create Titles and IDs object
+        </button>
+        <code>
+          <pre ref={codeRef}>
+            <button onClick={copyToClipboard} className="copy-to-clipboard">
+              Copy To Clipboard
+            </button>
+            {`
         <?php
           $pp = [
             'Module',
-            ${titleAndIds.map((titleAndId) => 
-              `[
+            ${titleAndIds
+              .map(
+                (titleAndId) =>
+                  `[
                 "${titleAndId.title}",
                 "${titleAndId.vimeoId}"
                ],
-              `).join("")}
+              `
+              )
+              .join("")}
           ];
 
           $course_id = 126286;
@@ -148,9 +168,10 @@ function App() {
           update_post_meta($course_id, 'pgz_course_modules', $modules);
         ?>
         `}
-        </pre>
-      </code>
-    </div>
+          </pre>
+        </code>
+      </div>
+    </StatusProvider>
   );
 }
 
