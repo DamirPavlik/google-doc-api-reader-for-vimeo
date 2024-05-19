@@ -13,7 +13,7 @@ const loginButton = () => {
     }
 
     return (
-    <div id='singInButton'>
+    <div id='singInButton' className='mr-10'>
         <GoogleLogin
             clientId={clientId}
             buttonText='Login'
